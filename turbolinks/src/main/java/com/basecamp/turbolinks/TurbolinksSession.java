@@ -18,6 +18,7 @@ import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.ImageView;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -46,6 +47,8 @@ public class TurbolinksSession {
     TurbolinksView turbolinksView;
     View progressView;
     View progressIndicator;
+    ImageView returnScreenshotView;
+    ImageView transitionalScreenshotView;
 
     static volatile TurbolinksSession defaultInstance;
 
@@ -647,6 +650,37 @@ public class TurbolinksSession {
         TurbolinksLog.setDebugLoggingEnabled(enabled);
     }
 
+    public void showReturnScreenshot(Bitmap screenshot) {
+        if (returnScreenshotView != null) {  // Custom progress view wouldn't have this view
+            returnScreenshotView.setVisibility(View.VISIBLE);
+            returnScreenshotView.setImageBitmap(screenshot);
+        }
+    }
+
+    public void hideReturnScreenshot() {
+        if (returnScreenshotView != null) { // Custom progress view wouldn't have this view
+            returnScreenshotView.setVisibility(View.GONE);
+            returnScreenshotView.setImageBitmap(null);
+        }
+    }
+
+    public void showTransitionalScreenshot(Bitmap screenshot) {
+        if (transitionalScreenshotView == null) {
+            transitionalScreenshotView = new ImageView(applicationContext);
+        }
+
+        if (screenshot != null) {
+            transitionalScreenshotView.setImageBitmap(screenshot);
+
+            ViewGroup parent = (ViewGroup) transitionalScreenshotView.getParent();
+            if (parent != null) {
+                parent.removeView(transitionalScreenshotView);
+            }
+
+            this.turbolinksView.addView(transitionalScreenshotView);
+        }
+    }
+
     /**
      * <p>Provides the status of whether Turbolinks is initialized and ready for use.</p>
      *
@@ -700,6 +734,7 @@ public class TurbolinksSession {
         // No custom progress view provided, use default
         if (progressView == null) {
             progressView = LayoutInflater.from(activity).inflate(R.layout.turbolinks_progress, turbolinksView, false);
+            returnScreenshotView = (ImageView) progressView.findViewById(R.id.screenshot);
 
             TurbolinksLog.d("TurbolinksSession background: " + turbolinksView.getBackground());
             progressView.setBackground(turbolinksView.getBackground());
